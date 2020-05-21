@@ -41,21 +41,9 @@ const Tab = createBottomTabNavigator();
 
 let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
 
-const Profile = () => {
-  return (
-    <View>
-      <Text>Profile</Text>
-    </View>
-  );
-};
 
-// const ShoppingBag = () => {
-//   return (
-//     <View>
-//       <Text>Shopping Bag</Text>
-//     </View>
-//   );
-// };
+
+export const apiUrl = 'http://172.20.10.5:3000';
 
 const Home = () => {
   return (

@@ -18,9 +18,16 @@ import Auth from '../components/Auth';
 const Stack = createStackNavigator();
 
 
-const Profile = ({  }) => {
+const Profile = ({ navigation }) => {
 
     const isUserLoggedIn = useSelector((state) => state.app.isLoggedIn);
+
+
+    if(!isUserLoggedIn) {
+      return(
+        <Auth />
+      )
+    }
 
     return (
       <SafeAreaView style={{flex: 1}}>
@@ -108,15 +115,160 @@ const styles1 = StyleSheet.create({
   },
 });
 
+
 const Orders = () => {
-  return (
+  return(
     <SafeAreaView>
       <View>
-        <Text>Orders Screen</Text>
+        <Text>Orders screen</Text>
       </View>
     </SafeAreaView>
-  );
-};
+  )
+}
+
+// const Orders = () => {
+//   return (
+//     <SafeAreaView style={styles1.contaier}>
+//       <ScrollView>
+//         <CheckoutStatusBar />
+//         {orders &&
+//           orders.length > 0 &&
+//           orders.map((el, i) => (
+//             <View style={styles1.orderView} key={i}>
+//               <View style={styles1.orderDetailsView}>
+//                 <View style={styles1.imageContainer}>
+//                   <Image
+//                     style={styles1.image}
+//                     source={{
+//                       uri: el.imageUrl,
+//                     }}
+//                   />
+//                 </View>
+//                 <View style={styles1.detailsContainer}>
+//                   <Text
+//                     style={{marginBottom: 10, fontSize: 20, fontWeight: '500'}}>
+//                     {el.name}
+//                   </Text>
+//                   <Text style={{marginBottom: 10, color: '#979393'}}>
+//                     {el.description}
+//                   </Text>
+//                   <View
+//                     style={{
+//                       flexDirection: 'row',
+//                       justifyContent: 'flex-start',
+//                       height: 30,
+//                     }}>
+//                     <Text
+//                       style={{
+//                         fontSize: 15,
+//                         fontWeight: '500',
+//                         textTransform: 'uppercase',
+//                       }}>
+//                       Size: {el.size}
+//                     </Text>
+//                     <Text
+//                       style={{fontSize: 15, fontWeight: '500', marginLeft: 50}}>
+//                       Quantity: 1
+//                     </Text>
+//                   </View>
+
+//                   <Text
+//                     style={{marginBottom: 10, fontSize: 15, fontWeight: '500'}}>
+//                     Price: ${el.price}
+//                   </Text>
+//                 </View>
+//               </View>
+//               <View
+//                 style={{
+//                   borderWidth: 1,
+//                   marginTop: 25,
+//                   backgroundColor: '#979393',
+//                   opacity: 0.2,
+//                 }}></View>
+//               <View
+//                 style={{
+//                   flex: 1,
+//                   justifyContent: 'center',
+//                   alignItems: 'flex-end',
+//                 }}>
+//                 <Text style={{color: '#504343'}}>STATUS</Text>
+//               </View>
+//             </View>
+//           ))}
+//         <View style={styles1.priceDetails}>
+//           <View>
+//             <Text style={{fontSize: 15, fontWeight: '600'}}>Price Details</Text>
+//           </View>
+//           <View>
+//             <View
+//               style={{
+//                 //   backgroundColor: 'blue',
+//                 flex: 1,
+//                 flexDirection: 'row',
+//                 alignItems: 'center',
+//                 justifyContent: 'space-between',
+//                 marginTop: 20,
+//               }}>
+//               <Text>Items price</Text>
+//               <Text style={{marginLeft: 30}}>
+//                 ${priceDetails && priceDetails.totalPrice}
+//               </Text>
+//             </View>
+//           </View>
+//           <View>
+//             <View
+//               style={{
+//                 //   backgroundColor: 'blue',
+//                 flex: 1,
+//                 flexDirection: 'row',
+//                 alignItems: 'center',
+//                 justifyContent: 'space-between',
+//                 marginTop: 10,
+//               }}>
+//               <Text>Taxes</Text>
+//               <Text style={{marginLeft: 30}}>
+//                 ${priceDetails && priceDetails.tax}
+//               </Text>
+//             </View>
+//           </View>
+//           <View>
+//             <View
+//               style={{
+//                 //   backgroundColor: 'blue',
+//                 flex: 1,
+//                 flexDirection: 'row',
+//                 alignItems: 'center',
+//                 justifyContent: 'space-between',
+//                 marginTop: 10,
+//               }}>
+//               <Text>Delivery charges</Text>
+//               <Text style={{marginLeft: 30}}>
+//                 ${priceDetails && priceDetails.deliveryCharge}
+//               </Text>
+//             </View>
+//           </View>
+//           <View style={{borderWidth: 1, opacity: 0.2, marginTop: 15}}></View>
+//           <View
+//             style={{
+//               marginTop: 30,
+//               flex: 1,
+//               flexDirection: 'row',
+//               justifyContent: 'space-between',
+//             }}>
+//             <Text>Total</Text>
+//             <Text>
+//               $
+//               {priceDetails &&
+//                 priceDetails.totalPrice +
+//                   priceDetails.tax +
+//                   priceDetails.deliveryCharge}
+//             </Text>
+//           </View>
+//         </View>
+//       </ScrollView>
+//     </SafeAreaView>
+//   );
+// };
 
 
 const Addresses = () => {

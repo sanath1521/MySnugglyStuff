@@ -19,7 +19,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector } from 'react-redux';
-
+import axios from 'axios';
+import { apiUrl } from '../../App';
+import { useDispatch } from 'react-redux';
 
 
 const Auth = ({ navigation }) => {
@@ -32,7 +34,49 @@ const Auth = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [password1, setPassword1] = useState('');
 
-    const [authState, setAuthState] = useState(1); //0 - Login state, 1 - sign up state
+    const [authState, setAuthState] = useState(0); //0 - Login state, 1 - sign up state
+
+
+    const handleButtonPress = () => {
+      if(authState == 0){
+        let data = {
+          email,
+          password
+        }
+
+        axios.post(`${apiUrl}/users/login`, data)
+        .then(res => {
+          if(res.data.email){
+            //dispatch an action to save user details
+            let result = res.data;
+            let data = {
+              id: result._id,
+              name: result.name,
+              phone: result.phone,
+              email: result.email,
+              savedItems: result.savedItems,
+              addresses: result.addresses ? result.addresses : [],
+              orders: result.orders
+            }
+
+            dispatch({
+              type: 'UPDATE_USER_DATA',
+              data
+            })
+
+            //dispatch an action to LOGIN USER
+            dispatch({
+              type: 'LOGIN_USER'
+            });
+
+          }
+        })
+        .catch(err => {
+          alert('Sorry! An error occured at the server.');
+        })
+      }
+    }
+
     return (
       <View style={styles.body}>
         <View style={styles.heading}>
@@ -109,7 +153,7 @@ const Auth = ({ navigation }) => {
         )}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => console.log('Press')}>
+          <TouchableOpacity onPress={() => handleButtonPress()}>
             <LinearGradient
               start={{x: 0.0, y: 0.25}}
               end={{x: 0.6, y: 1.0}}
