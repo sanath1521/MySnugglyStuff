@@ -1,10 +1,13 @@
 import {combineReducers} from 'redux';
 import user from './userReducer';
 import app from './appReducer';
+import order from './orderReducer';
+
 
 const combinedReducers = combineReducers({
   user,
-  app
+  app,
+  order
 });
 
 const rootReducer = (state, action) => {

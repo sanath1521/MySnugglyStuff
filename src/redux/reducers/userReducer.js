@@ -1,7 +1,9 @@
 let initialState = {
-    name: 'Prad',
+    id: '',
+    name: '',
     email: '',
     phone: '',
+    savedItems: []
 }
 
 
@@ -11,6 +13,14 @@ const userReducer = (state=initialState, action) => {
             return {
                 ...state,
                 ...action.data
+            }
+        case 'SAVE_ITEM':
+            return{
+                ...state,
+                savedItems: [
+                    ...state.savedItems,
+                    action.data
+                ]
             }
         default: 
             return state

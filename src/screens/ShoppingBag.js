@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Alert,
   TextInput,
   SafeAreaView,
   TouchableOpacity,
@@ -9,10 +10,18 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import LinearGradient from 'react-native-linear-gradient';
 import {createStackNavigator} from '@react-navigation/stack';
 import { ScreenStackHeaderRightView } from 'react-native-screens';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { apiUrl } from '../../App';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 
 
 const Stack = createStackNavigator();
@@ -26,7 +35,7 @@ const CheckoutStatusBar = ({step, onAddNewAddressPress}) => {
       style={{
         backgroundColor: '#ffffff',
         paddingVertical: 20,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         marginVertical: 20,
       }}>
       <View
@@ -37,7 +46,7 @@ const CheckoutStatusBar = ({step, onAddNewAddressPress}) => {
           //   alignItems: 'flex-end',
           justifyContent: 'space-around',
         }}>
-        <View style={{flex: 1}}>
+        <View style={{flex: 1,justifyContent: 'center'}}>
           <View
             style={{
               height: 20,
@@ -46,7 +55,7 @@ const CheckoutStatusBar = ({step, onAddNewAddressPress}) => {
               borderRadius: 100,
               backgroundColor: '#FF7A1A',
             }}></View>
-          <Text style={{marginTop: 8, fontWeight: '300'}}>Review</Text>
+          <Text style={{marginTop: 8, fontWeight: '300', textAlign: 'left', marginRight: 5}}>Review</Text>
         </View>
 
         <View style={{flex: 1, alignItems: 'center'}}>
@@ -79,7 +88,7 @@ const CheckoutStatusBar = ({step, onAddNewAddressPress}) => {
             position: 'absolute',
             width: '72%',
             marginTop: 10,
-            marginLeft: '15%',
+            marginLeft: '14%',
           }}></View>
       </View>
       {step == 2 && (
@@ -105,30 +114,146 @@ const CheckoutStatusBar = ({step, onAddNewAddressPress}) => {
 
 const Review = ({ navigation }) => {
 
-    const orders = [{a:1},{a:1},{a:1},{a:1}]
+  const [items, setItems] = useState([]);
+  const [priceDetails, setPriceDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const userId = useSelector(state => state.user.id);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsLoading(true);
+       let data = {
+         userId
+       };
+       axios
+         .post(`${apiUrl}/users/getSavedItems`, data)
+         .then((res) => {
+           console.log(res);
+           setItems(res.data.items);
+           setPriceDetails(res.data.priceDetails);
+           setIsLoading(false);
+         })
+         .catch((err) => {
+           alert('Sorry! an error occured at the server.');
+           setItems(null);
+           setPriceDetails(null);
+           setIsLoading(false);
+           setError(true);
+         });
+    }, []),
+  );
+
+
+  const handleRemovePress = (itemId) => {
+    Alert.alert(
+      'Remove',
+      'Remove item from bag',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {text: 'OK', onPress: () => removeSavedItem(itemId)},
+      ],
+      {cancelable: false},
+    );
+  }
+
+
+
+  const removeSavedItem = (itemId) => {
+    let data = {
+      userId: '5ec4c1866c41f402e98f35dd',
+      itemId 
+    }
+
+    axios.post(`${apiUrl}/users/removeItem`, data)
+    .then(res => {
+      alert('Item removed.');
+      console.log(res);
+      setItems(res.data.items);
+      setPriceDetails(res.data.priceDetails);
+    })
+    .catch(err => {
+      alert('Sorry! An error occured at the server');
+    })
+  } 
+
+
+
+  const dispatch = useDispatch();
+
+  const placeOrder = () => {
+    dispatch({
+      type: 'UPDATE_ORDER_ITEMS',
+      data: {
+        items: items,
+        price: priceDetails
+      }
+    });
+
+   
+    navigation.navigate('Address');
+  }
+
+  //Loading state
+  if(isLoading){
     return (
       <SafeAreaView style={styles1.contaier}>
-        <ScrollView>
-          <CheckoutStatusBar />
-          {orders.map((el, i) => (
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <ActivityIndicator size="small" color="#FF9F0E" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+
+  //No Items in bag
+  if(items && items.length == 0){
+    return(<SafeAreaView style={styles1.contaier}>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <Text>No items in the bag</Text>
+      </View>
+    </SafeAreaView>);
+  }
+
+  //Server error
+  if (error) {
+    return(<SafeAreaView style={styles1.contaier}>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <Text>Sorry! something is not right here.</Text>
+      </View>
+    </SafeAreaView>);
+  }
+
+
+  return (
+    <SafeAreaView style={styles1.contaier}>
+      <ScrollView>
+        <CheckoutStatusBar />
+        {items &&
+          items.length > 0 &&
+          items.map((el, i) => (
             <View style={styles1.orderView} key={i}>
               <View style={styles1.orderDetailsView}>
                 <View style={styles1.imageContainer}>
                   <Image
                     style={styles1.image}
                     source={{
-                      uri:
-                        'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
+                      uri: el.imageUrl,
                     }}
                   />
                 </View>
                 <View style={styles1.detailsContainer}>
                   <Text
                     style={{marginBottom: 10, fontSize: 20, fontWeight: '500'}}>
-                    T-shirt
+                    {el.name}
                   </Text>
                   <Text style={{marginBottom: 10, color: '#979393'}}>
-                    Product Description lorem ipsum dolrem
+                    {el.description}
                   </Text>
                   <View
                     style={{
@@ -136,8 +261,13 @@ const Review = ({ navigation }) => {
                       justifyContent: 'flex-start',
                       height: 30,
                     }}>
-                    <Text style={{fontSize: 15, fontWeight: '500'}}>
-                      Size: M
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '500',
+                        textTransform: 'uppercase',
+                      }}>
+                      Size: {el.size}
                     </Text>
                     <Text
                       style={{fontSize: 15, fontWeight: '500', marginLeft: 50}}>
@@ -147,7 +277,7 @@ const Review = ({ navigation }) => {
 
                   <Text
                     style={{marginBottom: 10, fontSize: 15, fontWeight: '500'}}>
-                    Price: $25
+                    Price: ${el.price}
                   </Text>
                 </View>
               </View>
@@ -158,110 +288,127 @@ const Review = ({ navigation }) => {
                   backgroundColor: '#979393',
                   opacity: 0.2,
                 }}></View>
-              <View
+              <TouchableOpacity
+                onPress={() => handleRemovePress(el._id)}
                 style={{
                   flex: 1,
                   justifyContent: 'center',
                   alignItems: 'flex-end',
                 }}>
                 <Text style={{color: '#504343'}}>REMOVE</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           ))}
-          <View style={styles1.priceDetails}>
-            <View>
-              <Text style={{fontSize: 15, fontWeight: '600'}}>
-                Price Details
-              </Text>
-            </View>
-            <View>
-              <View
-                style={{
-                  //   backgroundColor: 'blue',
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 20,
-                }}>
-                <Text>Items price</Text>
-                <Text style={{marginLeft: 30}}>$45</Text>
-              </View>
-            </View>
-            <View>
-              <View
-                style={{
-                  //   backgroundColor: 'blue',
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 10,
-                }}>
-                <Text>Taxes</Text>
-                <Text style={{marginLeft: 30}}>$10</Text>
-              </View>
-            </View>
-            <View>
-              <View
-                style={{
-                  //   backgroundColor: 'blue',
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 10,
-                }}>
-                <Text>Delivery charges</Text>
-                <Text style={{marginLeft: 30}}>$15</Text>
-              </View>
-            </View>
-            <View style={{borderWidth: 1,opacity: 0.2, marginTop: 15}}></View>
+        <View style={styles1.priceDetails}>
+          <View>
+            <Text style={{fontSize: 15, fontWeight: '600'}}>Price Details</Text>
+          </View>
+          <View>
             <View
               style={{
-                  marginTop: 30,
+                //   backgroundColor: 'blue',
                 flex: 1,
                 flexDirection: 'row',
+                alignItems: 'center',
                 justifyContent: 'space-between',
+                marginTop: 20,
               }}>
-              <Text>Total</Text>
-              <Text>$70</Text>
+              <Text>Items price</Text>
+              <Text style={{marginLeft: 30}}>
+                ${priceDetails && priceDetails.totalPrice}
+              </Text>
             </View>
           </View>
-        </ScrollView>
-        <View
-          style={{
-            backgroundColor: '#ffffff',
-            height: 50,
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            shadowColor: '#000',
-            shadowOffset: {width: 0, height: 1},
-            shadowOpacity: 0.8,
-            shadowRadius: 2,
-            elevation: 5,
-          }}>
-          <View style={{flex: 1, marginLeft: 10}}>
-            <Text style={{fontSize: 20}}>$25</Text>
+          <View>
+            <View
+              style={{
+                //   backgroundColor: 'blue',
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 10,
+              }}>
+              <Text>Taxes</Text>
+              <Text style={{marginLeft: 30}}>
+                ${priceDetails && priceDetails.tax}
+              </Text>
+            </View>
           </View>
-          <View style={{flex: 2, marginTop: 2, alignItems: 'flex-end'}}>
-            <TouchableOpacity
-              style={{width: '80%'}}
-              onPress={() => navigation.navigate('Address')}>
-              <LinearGradient
-                start={{x: 0.0, y: 0.25}}
-                end={{x: 0.6, y: 1.0}}
-                colors={['#FF9F0E', '#F53800']}
-                style={styles1.linearGradient}>
-                <Text style={styles1.buttonText}>Place order</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+          <View>
+            <View
+              style={{
+                //   backgroundColor: 'blue',
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 10,
+              }}>
+              <Text>Delivery charges</Text>
+              <Text style={{marginLeft: 30}}>
+                ${priceDetails && priceDetails.deliveryCharge}
+              </Text>
+            </View>
+          </View>
+          <View style={{borderWidth: 1, opacity: 0.2, marginTop: 15}}></View>
+          <View
+            style={{
+              marginTop: 30,
+              flex: 1,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}>
+            <Text>Total</Text>
+            <Text>
+              $
+              {priceDetails &&
+                priceDetails.totalPrice +
+                  priceDetails.tax +
+                  priceDetails.deliveryCharge}
+            </Text>
           </View>
         </View>
-      </SafeAreaView>
-    );
+      </ScrollView>
+      <View
+        style={{
+          backgroundColor: '#ffffff',
+          height: 50,
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: 1},
+          shadowOpacity: 0.8,
+          shadowRadius: 2,
+          elevation: 5,
+        }}>
+        <View style={{flex: 1, marginLeft: 10}}>
+          <Text style={{fontSize: 20}}>
+            $
+            {priceDetails &&
+              priceDetails.totalPrice +
+                priceDetails.tax +
+                priceDetails.deliveryCharge}
+          </Text>
+        </View>
+        <View style={{flex: 2, marginTop: 2, alignItems: 'flex-end'}}>
+          <TouchableOpacity
+            style={{width: '80%'}}
+            onPress={() => placeOrder()}>
+            <LinearGradient
+              start={{x: 0.0, y: 0.25}}
+              end={{x: 0.6, y: 1.0}}
+              colors={['#FF9F0E', '#F53800']}
+              style={styles1.linearGradient}>
+              <Text style={styles1.buttonText}>Place order</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles1 = StyleSheet.create({
@@ -311,10 +458,53 @@ const styles1 = StyleSheet.create({
 
 
 const Address = ({active, navigation}) => {
-  const addresses = [{a: 1}, {a: 2}, {a: 3}];
-  const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
+
+  const [addresses, setAddresses] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [error , setError] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsLoading(true);
+      let data = {
+        userId: '5ec4c1866c41f402e98f35dd',
+      };
+      axios
+        .post(`${apiUrl}/users/getSavedAddresses`, data)
+        .then((res) => {
+          console.log(res);
+          if(res.data.length > 0){
+             setAddresses(res.data);
+             setSelectedAddress(res.data[0]);
+          }
+         
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          alert('Sorry! an error occured at the server.');
+          setAddresses(null);
+          setIsLoading(false);
+          setError(true);
+        });
+    }, []),
+  );
+
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   let scrollViewRef = React.createRef();
+
+
+  const handleConfirm = () => {
+     dispatch({
+       type: 'UPDATE_ORDER_ADDRESS',
+       data: {
+         ...selectedAddress
+       },
+     });
+     navigation.navigate('Payment')
+  }
 
   return (
     <SafeAreaView style={styles2.contaier}>
@@ -336,7 +526,9 @@ const Address = ({active, navigation}) => {
                   style={{
                     ...styles2.circle,
                     backgroundColor:
-                      selectedAddress.a == el.a ? '#75BE3B' : '#ffffff',
+                      selectedAddress && selectedAddress._id == el._id
+                        ? '#75BE3B'
+                        : '#ffffff',
                   }}></View>
               </View>
               <View style={styles2.addressContainer}>
@@ -347,11 +539,12 @@ const Address = ({active, navigation}) => {
                       fontWeight: '500',
                       marginBottom: 10,
                     }}>
-                    Rob
+                    {el.userName}
                   </Text>
-                  <Text style={{fontSize: 18}}>
-                    #23, lorem avenue, Sydney, Australia
-                  </Text>
+                  <Text style={{fontSize: 18}}>{el.street}</Text>
+                  <Text style={{fontSize: 18}}>{el.town}</Text>
+                  <Text style={{fontSize: 18}}>{el.city}</Text>
+                  <Text style={{fontSize: 18}}>{el.state}</Text>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -360,10 +553,10 @@ const Address = ({active, navigation}) => {
                       //   j,
                     }}>
                     <Text style={{fontSize: 18, fontWeight: '400'}}>
-                      PIN code:{' '}
+                      ZIP code:{' '}
                     </Text>
                     <Text style={{fontSize: 18, fontWeight: '400'}}>
-                      605268
+                      {el.zipcode}
                     </Text>
                   </View>
                   <View
@@ -377,7 +570,7 @@ const Address = ({active, navigation}) => {
                       Mobile:{' '}
                     </Text>
                     <Text style={{fontSize: 18, fontWeight: '400'}}>
-                      1234567890
+                      {el.phone}
                     </Text>
                   </View>
                 </View>
@@ -385,9 +578,10 @@ const Address = ({active, navigation}) => {
             </View>
           </TouchableOpacity>
         ))}
-
+      </ScrollView>
+      {selectedAddress != null && (
         <View style={styles2.buttonContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('Payment')}>
+          <TouchableOpacity onPress={() => handleConfirm()}>
             <LinearGradient
               start={{x: 0.0, y: 0.25}}
               end={{x: 0.6, y: 1.0}}
@@ -397,7 +591,7 @@ const Address = ({active, navigation}) => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -431,7 +625,259 @@ const styles2 = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 10,
-    marginVertical: 30,
+    marginVertical: 10,
+    display: 'flex',
+    height: '15%',
+    // backgroundColor: 'blue',
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+  },
+  linearGradient: {
+    borderRadius: 100,
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontFamily: 'Gill Sans',
+    textAlign: 'center',
+    margin: 10,
+    color: '#ffffff',
+    backgroundColor: 'transparent',
+  },
+});
+
+
+const AddAddress = ({navigation}) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const [zipcode, setZipcode] = useState('');
+  const [street, setStreet] = useState('');
+  const [town, setTown] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+
+  const handleSavePress = () => {
+    if (name == '') {
+      alert('Please enter a valid name');
+      return;
+    } else if (phone.length < 10) {
+      alert('Please enter a valid phone');
+      return;
+    } else if (zipcode == '') {
+      alert('Please enter a valid phone');
+      return;
+    } else if (address.length < 10) {
+      alert('Please enter a valid building name and street');
+      return;
+    } else if (area.length < 3) {
+      alert('Please enter a valid Area/Locality');
+      return;
+    }
+
+    let data = {
+      userId: '5ec4c1866c41f402e98f35dd',
+      address: {
+        userName: name,
+        phone,
+        zipcode,
+        street,
+        town,
+        city,
+        state,
+      },
+    };
+
+    axios
+      .post(`${apiUrl}/users/addAddress`, data)
+      .then((res) => {
+        alert('Address saved');
+        navigation.goBack();
+      })
+      .catch((err) => {
+        alert('Sorry! an error occured at the server.');
+      });
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <KeyboardAwareScrollView>
+        <View style={{marginTop: 10}}>
+          <Text style={{paddingHorizontal: 10, fontWeight: '500'}}>
+            Contact Details
+          </Text>
+          <View
+            style={{
+              backgroundColor: '#ffffff',
+              marginVertical: 20,
+              paddingHorizontal: 10,
+              paddingVertical: 15,
+            }}>
+            <TextInput
+              style={{
+                marginVertical: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: '#c4c4c4',
+                color: '#000',
+                fontSize: 15,
+              }}
+              value={name}
+              onChangeText={(text) => setName(text)}
+              placeholder="Name"
+              placeholderTextColor="#c4c4c4"
+            />
+            <TextInput
+              style={{
+                marginVertical: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: '#c4c4c4',
+                color: '#000',
+                fontSize: 15,
+              }}
+              keyboardType="numeric"
+              value={phone}
+              onChangeText={(text) => setPhone(text)}
+              placeholder="Phone"
+              placeholderTextColor="#c4c4c4"
+            />
+          </View>
+        </View>
+        <View style={{marginTop: 10}}>
+          <Text style={{paddingHorizontal: 10, fontWeight: '500'}}>
+            Address
+          </Text>
+
+          <KeyboardAvoidingView
+            style={{
+              marginBottom: 100,
+              backgroundColor: '#ffffff',
+              marginVertical: 20,
+              paddingHorizontal: 10,
+              marginBottom: 100,
+              paddingVertical: 15,
+            }}>
+            <TextInput
+              style={{
+                marginVertical: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: '#c4c4c4',
+                color: '#000',
+                fontSize: 15,
+              }}
+              value={zipcode}
+              keyboardType="numeric"
+              onChangeText={(text) => setZipcode(text)}
+              placeholder="zip code"
+              placeholderTextColor="#c4c4c4"
+            />
+            <TextInput
+              style={{
+                marginVertical: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: '#c4c4c4',
+                color: '#000',
+                fontSize: 15,
+              }}
+              value={street}
+              onChangeText={(text) => setStreet(text)}
+              placeholder="House No., Building, Street, Area"
+              placeholderTextColor="#c4c4c4"
+            />
+            <TextInput
+              style={{
+                marginVertical: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 5,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: '#c4c4c4',
+                color: '#000',
+                fontSize: 15,
+              }}
+              value={town}
+              onChangeText={(text) => setTown(text)}
+              placeholder="Town/Locality"
+              placeholderTextColor="#c4c4c4"
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+              }}>
+              <TextInput
+                style={{
+                  // flex: 1,
+                  marginVertical: 10,
+                  paddingVertical: 10,
+                  paddingHorizontal: 5,
+                  width: '48%',
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderColor: '#c4c4c4',
+                  color: '#000',
+                  fontSize: 15,
+                }}
+                value={city}
+                onChangeText={(text) => setCity(text)}
+                placeholder="City"
+                placeholderTextColor="#c4c4c4"
+              />
+              <TextInput
+                style={{
+                  // flex: 1,
+                  width: '48%',
+                  marginVertical: 10,
+                  paddingVertical: 10,
+                  paddingHorizontal: 5,
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderColor: '#c4c4c4',
+                  color: '#000',
+                  fontSize: 15,
+                }}
+                value={state}
+                onChangeText={(text) => setState(text)}
+                placeholder="State"
+                placeholderTextColor="#c4c4c4"
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </KeyboardAwareScrollView>
+      <View style={addressStyles.buttonContainer}>
+        <TouchableOpacity onPress={() => handleSavePress()}>
+          <LinearGradient
+            start={{x: 0.0, y: 0.25}}
+            end={{x: 0.6, y: 1.0}}
+            colors={['#FF9F0E', '#F53800']}
+            style={addressStyles.linearGradient}>
+            <Text style={addressStyles.buttonText}>Save Address</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+
+const addressStyles = StyleSheet.create({
+  buttonContainer: {
+    paddingHorizontal: 10,
+    marginTop: 30,
     display: 'flex',
     height: '10%',
     flexDirection: 'column',
@@ -452,16 +898,35 @@ const styles2 = StyleSheet.create({
   },
 });
 
-
-const AddAddress = () => {
-    return (
-      <View>
-        <Text>Add address form</Text>
-      </View>
-    );
-}
-
 const Payment = () => {
+
+  const items = useSelector((state) => state.order.items);
+  const price = useSelector((state) => state.order.price);
+  const address = useSelector((state) => state.order.address);
+  const user = useSelector(state => state.user);
+
+  const createOrder = () => {
+    let data = {
+      items,
+      price,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone
+      }
+    }    
+
+    axios.post(`${apiUrl}/createOrder`, data)
+    .then(res => {
+      if(res.data.status == 200){
+        alert('Order placed successfully.');
+        navigation.navigate('Order Confirmed');
+      }
+    })
+
+  }
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <ScrollView>
@@ -484,12 +949,12 @@ const Payment = () => {
           elevation: 5,
         }}>
         <View style={{flex: 1, marginLeft: 10}}>
-          <Text style={{fontSize: 20}}>$25</Text>
+          <Text style={{fontSize: 20}}>${price.total}</Text>
         </View>
         <View style={{flex: 2, marginTop: 2, alignItems: 'flex-end'}}>
           <TouchableOpacity
             style={{width: '80%'}}
-            onPress={() => alert('Payment gateway')}>
+            onPress={() => createOrder()}>
             <LinearGradient
               start={{x: 0.0, y: 0.25}}
               end={{x: 0.6, y: 1.0}}
@@ -504,6 +969,30 @@ const Payment = () => {
   );
 };
 
+
+const OrderConfirmed = ({ navigation }) => {
+  return (
+    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <Text style={{fontSize: 18, fontWeight: '500'}}>
+        Order Placed successfully
+      </Text>
+      <View style={styles1.buttonContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <LinearGradient
+            start={{x: 0.0, y: 0.25}}
+            end={{x: 0.6, y: 1.0}}
+            colors={['#FF9F0E', '#F53800']}
+            style={styles1.linearGradient}>
+            <Text style={styles1.buttonText}>
+              Continue Shopping
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 const ShoppinBag = () => {
     return (
       <Stack.Navigator>
@@ -511,6 +1000,7 @@ const ShoppinBag = () => {
         <Stack.Screen name="Address" component={Address} />
         <Stack.Screen name="Add Address" component={AddAddress} />
         <Stack.Screen name="Payment" component={Payment} />
+        <Stack.Screen name="Order Confirmed" component={OrderConfirmed} />
       </Stack.Navigator>
     );
 }

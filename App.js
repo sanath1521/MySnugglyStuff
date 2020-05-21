@@ -39,23 +39,11 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 
-//let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
-let platform = 'md'
-const Profile = () => {
-  return (
-    <View>
-      <Text>Profile</Text>
-    </View>
-  );
-};
+let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
 
-// const ShoppingBag = () => {
-//   return (
-//     <View>
-//       <Text>Shopping Bag</Text>
-//     </View>
-//   );
-// };
+
+
+export const apiUrl = 'http://172.20.10.5:3000';
 
 const Home = () => {
   return (
