@@ -16,7 +16,7 @@ import {
 import {createStackNavigator} from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
-import {useDispatch, userSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 Ionicons.loadFont();
 
@@ -139,7 +139,7 @@ const styles1 = StyleSheet.create({
     fontSize: 40,
     marginTop: 20,
     marginBottom: 30,
-    color: '#F5101F',
+    // color: '#F5101F',
     opacity: 0.8,
   },
   scrollView: {
@@ -353,7 +353,7 @@ const Details = ({ route, navigation }) => {
 
   const dispatch = useDispatch();
 
-  const userId = userSelector(state => state.user.id);
+  const userId = useSelector(state => state.user.id);
 
   const handleUpload = () => {
     ImagePicker.openPicker({

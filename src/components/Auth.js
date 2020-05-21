@@ -24,7 +24,7 @@ import { apiUrl } from '../../App';
 import { useDispatch } from 'react-redux';
 
 
-const Auth = ({ navigation }) => {
+const Auth = ({ navigateTo }) => {
 
     const name1 = useSelector(state => state.user.name);
 
@@ -36,15 +36,15 @@ const Auth = ({ navigation }) => {
 
     const [authState, setAuthState] = useState(0); //0 - Login state, 1 - sign up state
 
-
+    const dispatch = useDispatch();
     const handleButtonPress = () => {
       if(authState == 0){
         let data = {
           email,
           password
         }
-
-        axios.post(`${apiUrl}/users/login`, data)
+        console.log(data);
+        axios.post(`${apiUrl}/users/login`, data, { timeout: 10000 })
         .then(res => {
           if(res.data.email){
             //dispatch an action to save user details
@@ -72,6 +72,7 @@ const Auth = ({ navigation }) => {
           }
         })
         .catch(err => {
+          console.log(err);
           alert('Sorry! An error occured at the server.');
         })
       }
@@ -111,6 +112,7 @@ const Auth = ({ navigation }) => {
             type="email"
             value={email}
             placeholderTextColor="#bfbfbf"
+            autoCapitalize={'none'}
             onChangeText={(text) => setEmail(text.toLocaleLowerCase())}
             style={styles.input}
             placeholder={'Email'}
@@ -168,7 +170,6 @@ const Auth = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => {
             authState == 0 ? setAuthState(1) : setAuthState(0);
-            navigation.navigate('Home');
           }}>
           <View style={styles.footer}>
             <Text style={styles.footerText}>

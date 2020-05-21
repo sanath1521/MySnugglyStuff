@@ -121,29 +121,37 @@ const Review = ({ navigation }) => {
 
   const userId = useSelector(state => state.user.id);
 
+  const isUserLoggedIn = useSelector((state) => state.app.isLoggedIn);  
+
   useFocusEffect(
     React.useCallback(() => {
-      setIsLoading(true);
-       let data = {
-         userId
-       };
-       axios
-         .post(`${apiUrl}/users/getSavedItems`, data)
-         .then((res) => {
-           console.log(res);
-           setItems(res.data.items);
-           setPriceDetails(res.data.priceDetails);
-           setIsLoading(false);
-         })
-         .catch((err) => {
-           alert('Sorry! an error occured at the server.');
-           setItems(null);
-           setPriceDetails(null);
-           setIsLoading(false);
-           setError(true);
-         });
-    }, []),
+      console.log(isUserLoggedIn);
+      if (isUserLoggedIn) {
+        setIsLoading(true);
+        if (!error) setError(false);
+        let data = {
+          userId,
+        };
+        axios
+          .post(`${apiUrl}/users/getSavedItems`, data, {timeout: 10000})
+          .then((res) => {
+            // console.log(`${error}-err`);
+            // console.log(res);
+            setItems(res.data.items);
+            setPriceDetails(res.data.priceDetails);
+            setIsLoading(false);
+          })
+          .catch((err) => {
+            console.log('An error occured at the server.');
+            setItems(null);
+            setPriceDetails(null);
+            setIsLoading(false);
+            setError(true);
+          });
+      }
+    }, [isUserLoggedIn]),
   );
+
 
 
   const handleRemovePress = (itemId) => {
@@ -197,6 +205,43 @@ const Review = ({ navigation }) => {
 
    
     navigation.navigate('Address');
+  }
+
+
+
+  if (!isUserLoggedIn) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 50,
+        }}>
+        <Text style={{fontSize: 16, fontWeight: '500'}}>
+          Please log in to view your shopping bag
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Profile')}
+          style={{
+            backgroundColor: '#FF9F0E',
+            height: '5%',
+            width: '50%',
+            borderRadius: 10,
+            marginTop: 30,
+          }}>
+          <Text
+            style={{
+              fontSize: 18,
+              textAlign: 'center',
+              marginTop: 4,
+              color: '#fff',
+            }}>
+            Log In
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   //Loading state
@@ -465,6 +510,8 @@ const Address = ({active, navigation}) => {
 
   const [error , setError] = useState(false);
 
+  const dispatch = useDispatch();
+
   useFocusEffect(
     React.useCallback(() => {
       setIsLoading(true);
@@ -535,16 +582,26 @@ const Address = ({active, navigation}) => {
                 <View style={styles2.address}>
                   <Text
                     style={{
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: '500',
-                      marginBottom: 10,
+                      marginBottom: 0,
                     }}>
                     {el.userName}
                   </Text>
-                  <Text style={{fontSize: 18}}>{el.street}</Text>
-                  <Text style={{fontSize: 18}}>{el.town}</Text>
-                  <Text style={{fontSize: 18}}>{el.city}</Text>
-                  <Text style={{fontSize: 18}}>{el.state}</Text>
+                  {el.street && (
+                    <Text style={{fontSize: 18, marginVertical: 4}}>
+                      {el.street}
+                    </Text>
+                  )}
+                  <Text style={{fontSize: 18, marginVertical: 4}}>
+                    {el.town}
+                  </Text>
+                  <Text style={{fontSize: 18, marginVertical: 4}}>
+                    {el.city}
+                  </Text>
+                  <Text style={{fontSize: 18, marginVertical: 4}}>
+                    {el.state}
+                  </Text>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -603,7 +660,7 @@ const styles2 = StyleSheet.create({
   },
   addressView: {
     backgroundColor: '#ffffff',
-    marginTop: 10,
+    marginTop: 5,
     padding: 20,
     flex: 1,
     flexDirection: 'row',
@@ -627,7 +684,7 @@ const styles2 = StyleSheet.create({
     paddingHorizontal: 10,
     marginVertical: 10,
     display: 'flex',
-    height: '15%',
+    height: '8%',
     // backgroundColor: 'blue',
     flexDirection: 'column',
     justifyContent: 'flex-end',
@@ -668,10 +725,10 @@ const AddAddress = ({navigation}) => {
     } else if (zipcode == '') {
       alert('Please enter a valid phone');
       return;
-    } else if (address.length < 10) {
+    } else if (street.length < 10) {
       alert('Please enter a valid building name and street');
       return;
-    } else if (area.length < 3) {
+    } else if (town.length < 3) {
       alert('Please enter a valid Area/Locality');
       return;
     }
@@ -689,15 +746,18 @@ const AddAddress = ({navigation}) => {
       },
     };
 
+    console.log(data);
+
+      
     axios
-      .post(`${apiUrl}/users/addAddress`, data)
-      .then((res) => {
-        alert('Address saved');
-        navigation.goBack();
-      })
-      .catch((err) => {
-        alert('Sorry! an error occured at the server.');
-      });
+    .post(`${apiUrl}/users/addAddress`, data, { timeout: 100000 })
+    .then((res) => {
+      alert('Address saved');
+      navigation.goBack();
+    })
+    .catch((err) => {
+      alert('Sorry! an error occured at the server.');
+    });
   };
 
   return (
@@ -898,41 +958,45 @@ const addressStyles = StyleSheet.create({
   },
 });
 
-const Payment = () => {
-
+const Payment = ({navigation}) => {
   const items = useSelector((state) => state.order.items);
   const price = useSelector((state) => state.order.price);
   const address = useSelector((state) => state.order.address);
-  const user = useSelector(state => state.user);
+  const user = useSelector((state) => state.user);
 
   const createOrder = () => {
     let data = {
       items,
       price,
+      address,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone
-      }
-    }    
+        phone: user.phone,
+      },
+    };
 
-    axios.post(`${apiUrl}/createOrder`, data)
-    .then(res => {
-      if(res.data.status == 200){
-        alert('Order placed successfully.');
-        navigation.navigate('Order Confirmed');
-      }
-    })
+    console.log(data);
 
-  }
+    axios
+      .post(`${apiUrl}/orders/createOrder`, data, {timeout: 10000})
+      .then((res) => {
+        if (res.data.status == 200) {
+          alert('Order placed successfully.');
+          navigation.navigate('Confirmed');
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        alert('Sorry! An error occured at the server.');
+      });
+  };
 
   return (
     <SafeAreaView style={{flex: 1}}>
       <ScrollView>
-        <CheckoutStatusBar
-          step={3}
-        />
+        <CheckoutStatusBar step={3} />
       </ScrollView>
       <View
         style={{
@@ -949,7 +1013,9 @@ const Payment = () => {
           elevation: 5,
         }}>
         <View style={{flex: 1, marginLeft: 10}}>
-          <Text style={{fontSize: 20}}>${price.total}</Text>
+          <Text style={{fontSize: 20, marginLeft: 10}}>
+            ${price.totalPrice + price.deliveryCharge + price.tax}
+          </Text>
         </View>
         <View style={{flex: 2, marginTop: 2, alignItems: 'flex-end'}}>
           <TouchableOpacity
@@ -976,14 +1042,20 @@ const OrderConfirmed = ({ navigation }) => {
       <Text style={{fontSize: 18, fontWeight: '500'}}>
         Order Placed successfully
       </Text>
-      <View style={styles1.buttonContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+      <View
+        style={{
+          marginVertical: 10,
+          paddingHorizontal: 10,
+          height: '8%',
+          width: '90%',
+        }}>
+        <TouchableOpacity onPress={() => navigation.push('Home')}>
           <LinearGradient
             start={{x: 0.0, y: 0.25}}
             end={{x: 0.6, y: 1.0}}
             colors={['#FF9F0E', '#F53800']}
             style={styles1.linearGradient}>
-            <Text style={styles1.buttonText}>
+            <Text style={{textAlign: 'center', fontSize: 18, color: '#ffffff', marginTop: 10}}>
               Continue Shopping
             </Text>
           </LinearGradient>
@@ -1000,7 +1072,7 @@ const ShoppinBag = () => {
         <Stack.Screen name="Address" component={Address} />
         <Stack.Screen name="Add Address" component={AddAddress} />
         <Stack.Screen name="Payment" component={Payment} />
-        <Stack.Screen name="Order Confirmed" component={OrderConfirmed} />
+        <Stack.Screen name="Confirmed" component={OrderConfirmed} />
       </Stack.Navigator>
     );
 }
