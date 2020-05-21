@@ -39,8 +39,8 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 
-let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
-
+//let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
+let platform = 'md'
 const Profile = () => {
   return (
     <View>
