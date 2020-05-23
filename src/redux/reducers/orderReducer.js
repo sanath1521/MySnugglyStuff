@@ -20,5 +20,10 @@ const orderReducer = (state=initialState, action) => {
                 ...state,
                 address: action.data
             }
+        default: 
+            return state
     }
 }
+
+
+export default orderReducer;

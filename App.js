@@ -12,6 +12,7 @@ import {
   StyleSheet,
   ScrollView,
   View,
+  NativeModules,
   Text,
   Platform,
   StatusBar,
@@ -33,6 +34,9 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+
+
+
 Ionicons.loadFont();
 
 const Stack = createStackNavigator();
@@ -43,7 +47,7 @@ let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
 
 
 
-export const apiUrl = 'http://192.168.0.101:3000';
+export const apiUrl = 'https://powerful-shelf-65832.herokuapp.com';
 
 const Home = () => {
   return (

@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  Alert,
   ActivityIndicator,
   ActionSheetIOS
 } from 'react-native';
@@ -16,9 +17,12 @@ import {
 import {createStackNavigator} from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
-import {useDispatch, userSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 Ionicons.loadFont();
+import { retrieveData } from '../../AsyncStorage';
+import {CommonActions} from '@react-navigation/native';
+
 
 
 import ImagePicker from 'react-native-image-crop-picker';
@@ -30,53 +34,22 @@ const screenHeight = Math.round(Dimensions.get('window').height);
 
 
 const Stack = createStackNavigator();
-// const Tab = createBottomTabNavigator();
-const categories = [
-  {
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    name: 'T-Shirts',
-    price_start: 25,
-  },
-  {
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    name: 'Hoodies',
-    price_start: 25,
-  },
-  {
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    name: 'Uniforms',
-    price_start: 25,
-  },
-  {
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    name: 'Bath Robes',
-    price_start: 25,
-  },
-  {
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    name: 'Soft Toys',
-    price_start: 25,
-  },
-];
+
 
 const Categories = ({ navigation }) => {
 
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(null);
-
+  const dispatch = useDispatch();
 
   useEffect(() => {
     //Sets loader true
+    console.log('CATEGORIESSS');
     setIsLoading(true);
 
     //Calling categories
     axios
-      .get(`${apiUrl}/categories`)
+      .get(`${apiUrl}/categories`, {timeout: 10000})
       .then((res) => {
         // setCategories([]);
         setCategories(res.data);
@@ -87,7 +60,46 @@ const Categories = ({ navigation }) => {
         setCategories([]);
         setIsLoading(false);
       });
+
+    retrieveData('user').then(val => {
+      console.log(val);
+      if(val && val.isLoggedIn){
+        getUserDetails(val.id);
+      }
+    });
   }, []);
+
+
+  const getUserDetails = (id) => {
+    let data = {
+      id
+    }
+    axios.post(`${apiUrl}/users/getUser`,data,  { timeout: 15000 })
+    .then(res => {
+      if(res.data.status == 200){
+         let result = res.data.user;
+         let data = {
+           id: result._id,
+           name: result.name,
+           phone: result.phone,
+           email: result.email,
+           savedItems: result.savedItems,
+           addresses: result.addresses ? result.addresses : [],
+           orders: result.orders,
+         };
+
+         dispatch({
+           type: 'UPDATE_USER_DATA',
+           data,
+         });
+
+         //dispatch an action to LOGIN USER
+         dispatch({
+           type: 'LOGIN_USER',
+         });
+      }
+    })
+  };
 
 
 
@@ -139,7 +151,7 @@ const styles1 = StyleSheet.create({
     fontSize: 40,
     marginTop: 20,
     marginBottom: 30,
-    color: '#F5101F',
+    // color: '#F5101F',
     opacity: 0.8,
   },
   scrollView: {
@@ -178,48 +190,6 @@ const styles1 = StyleSheet.create({
 
 
 
-const products = [
-  {
-    name: 'Round Neck T-shirt',
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    description: 'Product description here',
-    price: 35,
-    sizes: ['S', 'M', 'L', 'XL'],
-  },
-  {
-    name: 'Polo T-shirt',
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    description: 'Product description here',
-    price: 20,
-    sizes: ['S', 'M', 'L'],
-  },
-  {
-    name: 'Embroided T-shirt',
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    description: 'Product description here',
-    price: 10,
-    sizes: ['S', 'M', 'L', 'XL'],
-  },
-  {
-    name: 'Sleeveless T-shirt',
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    description: 'Product description here',
-    price: 22,
-    sizes: ['S', 'M', 'XL'],
-  },
-  {
-    name: 'Round Neck T-shirt',
-    image_src:
-      'https://img.freepik.com/free-psd/white-t-shirts-mockup-grey_34168-1032.jpg?size=626&ext=jpg',
-    description: 'Product description here',
-    price: 45,
-    sizes: ['S', 'M', 'L', 'XL'],
-  },
-];
 
 const Products = ({ route, navigation }) => {
   const cat = route.params.category;
@@ -338,6 +308,8 @@ const Details = ({ route, navigation }) => {
 
   const product = route.params.product;
 
+  const isUserLoggedIn = useSelector(state => state.app.isLoggedIn);
+
   let scrollViewRef = React.createRef();
   const [logoImagUrl, setLogoUrl] = React.useState(null);
   const [image, setImage] = React.useState(null);
@@ -353,7 +325,7 @@ const Details = ({ route, navigation }) => {
 
   const dispatch = useDispatch();
 
-  const userId = userSelector(state => state.user.id);
+  const userId = useSelector(state => state.user.id);
 
   const handleUpload = () => {
     ImagePicker.openPicker({
@@ -408,6 +380,22 @@ const Details = ({ route, navigation }) => {
   }
 
   const handleAddToBagPress = () => {
+    if(!isUserLoggedIn){
+       Alert.alert(
+         'Log In',
+         'Please log in to continue.',
+         [
+           {
+             text: 'Cancel',
+             onPress: () => console.log('Cancel Pressed'),
+             style: 'cancel',
+           },
+           {text: 'OK', onPress: () => navigation.navigate('Profile')},
+         ],
+         {cancelable: false},
+       );
+
+    }
     if(!itemAdded){
       if (selectedSize == null) {
         alert('Please select a size');
@@ -422,6 +410,12 @@ const Details = ({ route, navigation }) => {
       setSelectedSize(null);
       setImage(null);
       setItemAdded(false);
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{name: 'Home'}],
+        }),
+      );
       navigation.navigate('Shopping Bag');
     }
   }
