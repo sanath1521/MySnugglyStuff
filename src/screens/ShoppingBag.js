@@ -22,7 +22,14 @@ import axios from 'axios';
 import { apiUrl } from '../../App';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+import stripe from 'tipsi-stripe';
+import {CommonActions} from '@react-navigation/native';
 
+
+
+stripe.setOptions({
+  publishableKey: 'pk_test_huzvfa7zc7ZDNuJNhlKktCvu00l6CNCDxw',
+});
 
 const Stack = createStackNavigator();
 const screenHeight = Math.round(Dimensions.get('window').height);
@@ -116,7 +123,7 @@ const Review = ({ navigation }) => {
 
   const [items, setItems] = useState([]);
   const [priceDetails, setPriceDetails] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const userId = useSelector(state => state.user.id);
@@ -964,11 +971,12 @@ const Payment = ({navigation}) => {
   const address = useSelector((state) => state.order.address);
   const user = useSelector((state) => state.user);
 
-  const createOrder = () => {
+  const createOrder = (token) => {
     let data = {
       items,
       price,
       address,
+      paymentToken: token,
       user: {
         id: user.id,
         name: user.name,
@@ -984,6 +992,12 @@ const Payment = ({navigation}) => {
       .then((res) => {
         if (res.data.status == 200) {
           alert('Order placed successfully.');
+           navigation.dispatch(
+             CommonActions.reset({
+               index: 1,
+               routes: [{name: 'Review'}],
+             }),
+           );
           navigation.navigate('Confirmed');
         }
       })
@@ -992,6 +1006,21 @@ const Payment = ({navigation}) => {
         alert('Sorry! An error occured at the server.');
       });
   };
+
+
+  const handlePayNowPress = async () => {
+    // createOrder('');
+    try{
+      const token = await stripe.paymentRequestWithCardForm();
+      if(token){
+        createOrder(token.tokenId);
+      }
+    }
+    catch(e){
+      alert('Sorry! unable to process your payment');
+      console.log(e);
+    }
+  }
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -1020,7 +1049,7 @@ const Payment = ({navigation}) => {
         <View style={{flex: 2, marginTop: 2, alignItems: 'flex-end'}}>
           <TouchableOpacity
             style={{width: '80%'}}
-            onPress={() => createOrder()}>
+            onPress={() => handlePayNowPress()}>
             <LinearGradient
               start={{x: 0.0, y: 0.25}}
               end={{x: 0.6, y: 1.0}}
@@ -1037,6 +1066,17 @@ const Payment = ({navigation}) => {
 
 
 const OrderConfirmed = ({ navigation }) => {
+
+  const handleConfirmPress = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: 'Review' }]
+      })
+    )
+    navigation.navigate('Home')
+  }
+
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text style={{fontSize: 18, fontWeight: '500'}}>
@@ -1049,13 +1089,19 @@ const OrderConfirmed = ({ navigation }) => {
           height: '8%',
           width: '90%',
         }}>
-        <TouchableOpacity onPress={() => navigation.push('Home')}>
+        <TouchableOpacity onPress={() => handleConfirmPress()}>
           <LinearGradient
             start={{x: 0.0, y: 0.25}}
             end={{x: 0.6, y: 1.0}}
             colors={['#FF9F0E', '#F53800']}
             style={styles1.linearGradient}>
-            <Text style={{textAlign: 'center', fontSize: 18, color: '#ffffff', marginTop: 10}}>
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: 18,
+                color: '#ffffff',
+                marginTop: 10,
+              }}>
               Continue Shopping
             </Text>
           </LinearGradient>

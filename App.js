@@ -12,6 +12,7 @@ import {
   StyleSheet,
   ScrollView,
   View,
+  NativeModules,
   Text,
   Platform,
   StatusBar,
@@ -33,6 +34,9 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+
+
+
 Ionicons.loadFont();
 
 const Stack = createStackNavigator();
@@ -43,7 +47,7 @@ let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
 
 
 
-export const apiUrl = 'http://172.20.10.5:3000';
+export const apiUrl = 'http://192.168.1.103:3000';
 
 const Home = () => {
   return (
