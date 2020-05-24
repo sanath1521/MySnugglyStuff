@@ -22,6 +22,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 Ionicons.loadFont();
 import { retrieveData } from '../../AsyncStorage';
 import {CommonActions} from '@react-navigation/native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 
 
@@ -326,6 +327,8 @@ const Details = ({ route, navigation }) => {
 
   const userId = useSelector(state => state.user.id);
 
+  const [quantity, setQuantity] = useState("1");
+
   const handleUpload = () => {
     ImagePicker.openPicker({
       width: 300,
@@ -354,20 +357,21 @@ const Details = ({ route, navigation }) => {
         name: product.name,
         imageUrl: product.imageUrl,
         logo: {
-          imageBase64: image.data,
-          text: logoText
+          imageBase64: image && image.data,
+          text: logoText,
         },
         description: product.description,
         category: product.category,
         categoryId: product.categoryId,
+        quantity,
         size: selectedSize.label,
-        price: product.price
-      }
-    }
+        price: product.price,
+      },
+    };
 
     console.log(data);
 
-    axios.post(`${apiUrl}/users/saveItem`, data)
+    axios.post(`${apiUrl}/users/saveItem`, data, { timeout: 15000 })
     .then(res => {
       setLoading(false);
       dispatch({type: 'SAVE_ITEM', data: data.item});
@@ -405,6 +409,11 @@ const Details = ({ route, navigation }) => {
         return;
       }
 
+      if(quantity.length < 1){
+        alert('Please enter quantity');
+        return;
+      }
+
       saveItem();
     }
     else{
@@ -431,7 +440,7 @@ const Details = ({ route, navigation }) => {
           <ActivityIndicator size="small" color="#FF9F0E" />
         </View>
       )}
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles3.scrollView}
         ref={(ref) => (scrollViewRef = ref)}>
         <View style={{backgroundColor: '#FFFFFF'}}>
@@ -580,6 +589,33 @@ const Details = ({ route, navigation }) => {
                 </TouchableWithoutFeedback>
               ))}
           </View>
+
+          <View style={{marginTop: 5}}>
+            <Text style={{fontWeight: '300', marginTop: 4, color: '#979393'}}>
+              Quantity
+            </Text>
+            <TextInput
+              style={{
+                height: 40,
+                backgroundColor: '#FFFFFF',
+                borderColor: '#D3D0D0',
+                borderWidth: 1,
+                width: '95%',
+                color: 'black',
+                paddingLeft: 4,
+                marginTop: 10,
+                marginBottom: 20,
+                borderRadius: 5,
+              }}
+              type="text"
+              keyboardType="numeric"
+              onFocus={() => scrollViewRef.scrollToEnd({animated: true})}
+              placeholderTextColor="#D3D0D0"
+              placeholder="Enter here"
+              value={quantity}
+              onChangeText={(text) => setQuantity(text)}
+            />
+          </View>
         </View>
 
         <View style={styles3.addToBagBtnContainer}>
@@ -595,7 +631,7 @@ const Details = ({ route, navigation }) => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

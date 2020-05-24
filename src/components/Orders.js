@@ -18,7 +18,7 @@ import {useSelector} from 'react-redux';
 import axios from 'axios';
 import {apiUrl} from '../../App';
 import {useFocusEffect} from '@react-navigation/native';
-
+import Moment from 'moment';
 
 
 let {width, height} = Dimensions.get('window');
@@ -46,7 +46,7 @@ const Orders = () => {
             .post(`${apiUrl}/users/getOrders`, data, {timeout: 10000})
             .then((res) => {
                 if(res.data.status == 200){
-                    setOrders(res.data.orders);
+                    setOrders(res.data.orders.reverse());
                 }
                 else{
                     setError(true);
@@ -104,21 +104,31 @@ const Orders = () => {
                 key={i}
                 style={{
                   marginVertical: 20,
-                  paddingHorizontal: 20,
+                  paddingHorizontal: 10,
                   flex: 1,
                   flexDirection: 'row',
                   justifyContent: 'space-between',
+                  alignItems: 'center'
                 }}>
-                <Text style={{fontSize: 15, fontWeight: '400', paddingRight: 10}}>
-                  Order Id: {order.id}
-                </Text>
+                <View>
+                  <Text
+                    style={{fontSize: 15, fontWeight: '400', paddingRight: 10, marginBottom: 10}}>
+                    Order Id: {order._id}
+                  </Text>
+
+                  <Text
+                    style={{fontSize: 15, fontWeight: '400', paddingRight: 10}}>
+                    Order On: { Moment(order.createdOn).format('MMM DD, YYYY') }
+                  </Text>
+                </View>
+
                 <Text
                   style={{
                     color: '#FF9F0E',
                     fontSize: 15,
                     fontWeight: '700',
                     paddingRight: 10,
-                    textTransform: 'capitalize'
+                    textTransform: 'capitalize',
                   }}>
                   {order.status}
                 </Text>
@@ -130,8 +140,7 @@ const Orders = () => {
                       <Image
                         style={styles1.image}
                         source={{
-                          uri:
-                            el.imageUrl
+                          uri: el.imageUrl,
                         }}
                       />
                     </View>
@@ -188,11 +197,27 @@ const Orders = () => {
                       backgroundColor: '#979393',
                       opacity: 0.2,
                     }}></View>
-                    <View style={{flex: 1, flexDirection: 'row',justifyContent: 'flex-end', marginVertical: 10, paddingRight: 20}}>
-                        <Text>Total: $30</Text>
-                    </View>
                 </View>
               ))}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: '#ffffff',
+                  paddingTop: 10,
+                  paddingBottom: 15,
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  marginVertical: 10,
+                  paddingRight: 20,
+                  marginTop: -10,
+                }}>
+                <Text style={{fontSize: 18, fontWeight: '500'}}>
+                  Total: $
+                  {order.price.totalPrice +
+                    order.price.tax +
+                    order.price.deliveryCharge}
+                </Text>
+              </View>
             </>
           ))}
         </ScrollView>

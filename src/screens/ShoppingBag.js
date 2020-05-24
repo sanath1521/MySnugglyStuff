@@ -325,7 +325,7 @@ const Review = ({ navigation }) => {
                     </Text>
                     <Text
                       style={{fontSize: 15, fontWeight: '500', marginLeft: 50}}>
-                      Quantity: 1
+                      Quantity: {el.quantity}
                     </Text>
                   </View>
 
