@@ -33,13 +33,12 @@ var {width, height} = Dimensions.get('window');
 
 const Auth = ({ navigateTo }) => {
 
-    const name1 = useSelector(state => state.user.name);
 
-    const [name, setName] = useState(name1);
-    const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [password1, setPassword1] = useState('');
+    const [name, setName] = useState(null);
+    const [phone, setPhone] = useState(null);
+    const [email, setEmail] = useState(null);
+    const [password, setPassword] = useState(null);
+    const [password1, setPassword1] = useState(null);
 
     const [authState, setAuthState] = useState(0); //0 - Login state, 1 - sign up state
 
@@ -334,10 +333,11 @@ const styles = StyleSheet.create({
     marginTop: 50
   },
   input: {
-    height: 20,
+    // height: 40,
+    paddingVertical:10,
     borderBottomColor: '#bfbfbf',
     // backgroundColor: '#bfbfbf',
-    color: 'black',
+    // color: 'black',
     marginTop: 40,
     borderBottomWidth: 0.4,
   },
