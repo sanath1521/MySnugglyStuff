@@ -101,6 +101,7 @@ const Orders = () => {
           {orders.map((order, i) => (
             <>
               <View
+                key={i}
                 style={{
                   marginVertical: 20,
                   paddingHorizontal: 20,

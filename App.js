@@ -47,7 +47,11 @@ let platform = Platform.OS == 'ios' ? 'ios' : 'md'; //For Ionicons
 
 
 
-export const apiUrl = 'https://powerful-shelf-65832.herokuapp.com';
+// export const apiUrl = 'https://powerful-shelf-65832.herokuapp.com';
+
+
+export const apiUrl = 'http://192.168.1.103:5000';
+
 
 const Home = () => {
   return (

@@ -31,7 +31,7 @@ import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gestu
 import { apiUrl } from '../../App';
 
 const screenHeight = Math.round(Dimensions.get('window').height);
-
+var {width, height} = Dimensions.get('window');
 
 const Stack = createStackNavigator();
 
@@ -44,7 +44,6 @@ const Categories = ({ navigation }) => {
 
   useEffect(() => {
     //Sets loader true
-    console.log('CATEGORIESSS');
     setIsLoading(true);
 
     //Calling categories
@@ -80,6 +79,7 @@ const Categories = ({ navigation }) => {
          let result = res.data.user;
          let data = {
            id: result._id,
+           password: result.password,
            name: result.name,
            phone: result.phone,
            email: result.email,
@@ -100,8 +100,6 @@ const Categories = ({ navigation }) => {
       }
     })
   };
-
-
 
   return (
     <SafeAreaView style={styles1.container}>
@@ -320,6 +318,7 @@ const Details = ({ route, navigation }) => {
 
   const [isLogoUploaded, setLogoUploaded] = useState(false);
 
+  const [isLoading, setLoading] = useState(false);
 
   const [itemAdded, setItemAdded] = useState(false);
 
@@ -339,6 +338,7 @@ const Details = ({ route, navigation }) => {
         data: img.data, //base64 format
         path: img.path
       });
+      console.log(img.data);
       setLogoUploaded(true);
     });
   };
@@ -346,6 +346,7 @@ const Details = ({ route, navigation }) => {
 
 
   const saveItem = () => {
+    setLoading(true);
     let data = {
       userId,
       item: {
@@ -353,7 +354,7 @@ const Details = ({ route, navigation }) => {
         name: product.name,
         imageUrl: product.imageUrl,
         logo: {
-          imageUrl: '',
+          imageBase64: image.data,
           text: logoText
         },
         description: product.description,
@@ -368,11 +369,13 @@ const Details = ({ route, navigation }) => {
 
     axios.post(`${apiUrl}/users/saveItem`, data)
     .then(res => {
+      setLoading(false);
       dispatch({type: 'SAVE_ITEM', data: data.item});
       alert('Item added to your shopping bag');
       setItemAdded(true);
     })
     .catch(err => {
+      setLoading(false);
       console.log(err);
       alert("Sorry! an unexpected error occured at server");
     })
@@ -423,6 +426,11 @@ const Details = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles3.container}>
+      {isLoading && (
+        <View style={[styles3.overlay, {height: '100%'}]}>
+          <ActivityIndicator size="small" color="#FF9F0E" />
+        </View>
+      )}
       <ScrollView
         style={styles3.scrollView}
         ref={(ref) => (scrollViewRef = ref)}>
@@ -430,8 +438,7 @@ const Details = ({ route, navigation }) => {
           <Image
             style={styles3.image}
             source={{
-              uri:
-                product.imageUrl
+              uri: product.imageUrl,
             }}
           />
           <View
@@ -491,7 +498,11 @@ const Details = ({ route, navigation }) => {
                 paddingRight: 10,
               }}>
               <Text style={{fontSize: 18}}>Logo uploaded</Text>
-              <TouchableOpacity onPress={() => {setLogoUploaded(false); setImage(null);}}>
+              <TouchableOpacity
+                onPress={() => {
+                  setLogoUploaded(false);
+                  setImage(null);
+                }}>
                 <Text style={{color: '#FF5E3A', fontWeight: '400'}}>
                   Remove
                 </Text>
@@ -560,7 +571,10 @@ const Details = ({ route, navigation }) => {
                     alignItems: 'center',
                   }}>
                   <Text
-                    style={{color: el == selectedSize ? '#FF9F0E' : '#000000', textTransform: 'uppercase'}}>
+                    style={{
+                      color: el == selectedSize ? '#FF9F0E' : '#000000',
+                      textTransform: 'uppercase',
+                    }}>
                     {el.label}
                   </Text>
                 </TouchableWithoutFeedback>
@@ -575,7 +589,9 @@ const Details = ({ route, navigation }) => {
               end={{x: 0.6, y: 1.0}}
               colors={['#FF9F0E', '#F53800']}
               style={styles3.linearGradient}>
-              <Text style={styles3.buttonText2}>{!itemAdded ? 'Add to bag' : 'Go to bag'}</Text>
+              <Text style={styles3.buttonText2}>
+                {!itemAdded ? 'Add to bag' : 'Go to bag'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -586,6 +602,18 @@ const Details = ({ route, navigation }) => {
 
 
 const styles3 = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    opacity: 0.4,
+    backgroundColor: 'black',
+    width: width,
+    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  } ,
   container: {
     flex: 1,
   },

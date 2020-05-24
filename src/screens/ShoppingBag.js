@@ -26,6 +26,8 @@ import stripe from 'tipsi-stripe';
 import {CommonActions} from '@react-navigation/native';
 
 
+var {width, height} = Dimensions.get('window');
+
 
 stripe.setOptions({
   publishableKey: 'pk_test_huzvfa7zc7ZDNuJNhlKktCvu00l6CNCDxw',
@@ -181,7 +183,7 @@ const Review = ({ navigation }) => {
 
   const removeSavedItem = (itemId) => {
     let data = {
-      userId: '5ec4c1866c41f402e98f35dd',
+      userId,
       itemId 
     }
 
@@ -517,13 +519,15 @@ const Address = ({active, navigation}) => {
 
   const [error , setError] = useState(false);
 
+  const userId = useSelector((state) => state.user.id);
+
   const dispatch = useDispatch();
 
   useFocusEffect(
     React.useCallback(() => {
       setIsLoading(true);
       let data = {
-        userId: '5ec4c1866c41f402e98f35dd',
+        userId,
       };
       axios
         .post(`${apiUrl}/users/getSavedAddresses`, data)
@@ -715,7 +719,7 @@ const styles2 = StyleSheet.create({
 const AddAddress = ({navigation}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-
+  const userId = useSelector((state) => state.user.id);
   const [zipcode, setZipcode] = useState('');
   const [street, setStreet] = useState('');
   const [town, setTown] = useState('');
@@ -741,7 +745,7 @@ const AddAddress = ({navigation}) => {
     }
 
     let data = {
-      userId: '5ec4c1866c41f402e98f35dd',
+      userId,
       address: {
         userName: name,
         phone,
@@ -966,12 +970,16 @@ const addressStyles = StyleSheet.create({
 });
 
 const Payment = ({navigation}) => {
+
+  const [isLoading, setLoading] = useState(false);
+
   const items = useSelector((state) => state.order.items);
   const price = useSelector((state) => state.order.price);
   const address = useSelector((state) => state.order.address);
   const user = useSelector((state) => state.user);
 
   const createOrder = (token) => {
+    setLoading(true);
     let data = {
       items,
       price,
@@ -991,7 +999,7 @@ const Payment = ({navigation}) => {
       .post(`${apiUrl}/orders/createOrder`, data, {timeout: 10000})
       .then((res) => {
         if (res.data.status == 200) {
-          alert('Order placed successfully.');
+          // alert('Order placed successfully.');
            navigation.dispatch(
              CommonActions.reset({
                index: 1,
@@ -1024,8 +1032,16 @@ const Payment = ({navigation}) => {
 
   return (
     <SafeAreaView style={{flex: 1}}>
+      {isLoading && (
+        <View style={[styles4.overlay, {height: '100%'}]}>
+          <ActivityIndicator size="small" color="#FF9F0E" />
+        </View>
+      )}
       <ScrollView>
         <CheckoutStatusBar step={3} />
+        <View style={{ marginTop: '50%',justifyContent: 'center', alignItems: 'center' }}>
+          <Text>You will be redirected to payment gateway.</Text>
+        </View>
       </ScrollView>
       <View
         style={{
@@ -1065,6 +1081,21 @@ const Payment = ({navigation}) => {
 };
 
 
+const styles4 = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    opacity: 0.4,
+    backgroundColor: 'black',
+    width: width,
+    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+});
+
 const OrderConfirmed = ({ navigation }) => {
 
   const handleConfirmPress = () => {
@@ -1084,7 +1115,7 @@ const OrderConfirmed = ({ navigation }) => {
       </Text>
       <View
         style={{
-          marginVertical: 10,
+          marginVertical: 80,
           paddingHorizontal: 10,
           height: '8%',
           width: '90%',
