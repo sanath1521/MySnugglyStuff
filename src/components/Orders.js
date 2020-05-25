@@ -176,7 +176,7 @@ const Orders = () => {
                             fontWeight: '500',
                             marginLeft: 50,
                           }}>
-                          Quantity: 1
+                          Quantity: {el.quantity}
                         </Text>
                       </View>
 
