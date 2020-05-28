@@ -401,6 +401,7 @@ const Details = ({ route, navigation }) => {
          ],
          {cancelable: false},
        );
+       return;
 
     }
     if(!itemAdded){

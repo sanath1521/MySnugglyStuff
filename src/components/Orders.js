@@ -73,7 +73,7 @@ const Orders = () => {
         )
     }
 
-     if (orders.length == 0) {
+     if (orders && orders.length == 0) {
        return (
          <SafeAreaView style={{flex: 1}}>
            <View

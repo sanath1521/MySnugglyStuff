@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical:10,
     borderBottomColor: '#bfbfbf',
     // backgroundColor: '#bfbfbf',
-    // color: 'black',
+    color: 'black',
     marginTop: 40,
     borderBottomWidth: 0.4,
   },
