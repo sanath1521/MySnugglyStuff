@@ -30,7 +30,7 @@ var {width, height} = Dimensions.get('window');
 
 
 stripe.setOptions({
-  publishableKey: 'pk_test_huzvfa7zc7ZDNuJNhlKktCvu00l6CNCDxw',
+  publishableKey: 'pk_test_X439TdeRRLZ6ijcSZSbGmJp600yxslrM09',
 });
 
 const Stack = createStackNavigator();

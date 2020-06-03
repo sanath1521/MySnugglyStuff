@@ -181,7 +181,7 @@ const Auth = ({ navigateTo }) => {
           {isLoading && <View style={[styles.overlay, {height: '100%'}]}>
             <ActivityIndicator size="small" color="#FF9F0E" />
           </View>}
-          <KeyboardAwareScrollView>
+          <ScrollView>
             <View style={styles.heading}>
               <Text style={styles.headingText}>
                 {authState == 0 ? 'Log In' : 'Sign up'}
@@ -272,10 +272,11 @@ const Auth = ({ navigateTo }) => {
               </TouchableOpacity>
             </View>
             <TouchableOpacity
+            style={styles.footer}
               onPress={() => {
                 authState == 0 ? setAuthState(1) : setAuthState(0);
               }}>
-              <View style={styles.footer}>
+              <View >
                 <Text style={styles.footerText}>
                   {authState == 1
                     ? 'Have an account? Log In'
@@ -283,7 +284,7 @@ const Auth = ({ navigateTo }) => {
                 </Text>
               </View>
             </TouchableOpacity>
-          </KeyboardAwareScrollView>
+          </ScrollView>
         </SafeAreaView>
       </>
     );
@@ -361,7 +362,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     backgroundColor: 'transparent',
   },
-  footer: {},
+  footer: {
+    marginBottom: 50
+  },
   footerText: {
     color: '#FF9F0E',
     marginLeft: 6,
