@@ -272,17 +272,17 @@ const Auth = ({ navigateTo }) => {
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-            style={styles.footer}
+              style={styles.footer}
               onPress={() => {
                 authState == 0 ? setAuthState(1) : setAuthState(0);
               }}>
-              <View >
+              {/* <View > */}
                 <Text style={styles.footerText}>
                   {authState == 1
                     ? 'Have an account? Log In'
                     : 'New here? Sign up'}
                 </Text>
-              </View>
+              {/* </View> */}
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 60,
     display: 'flex',
-    height: '20%',
+   // height: '20%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
   },
@@ -363,7 +363,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   footer: {
-    marginBottom: 50
+    marginTop:30,
+    marginBottom: 30
   },
   footerText: {
     color: '#FF9F0E',
