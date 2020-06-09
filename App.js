@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -33,7 +33,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import SplashScreen from 'react-native-splash-screen';
 
 
 
@@ -64,6 +64,12 @@ const Home = () => {
 };
 
 const App = () => {
+
+
+  useEffect(() => {
+    SplashScreen.hide();
+  }, [])
+
   return (
     <>
       <Tab.Navigator

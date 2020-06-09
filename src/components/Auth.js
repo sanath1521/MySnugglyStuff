@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 60,
     display: 'flex',
-    height: '20%',
+    // height: '20%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
   },
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   footer: {
-    marginBottom: 50
+    marginVertical: 50
   },
   footerText: {
     color: '#FF9F0E',
